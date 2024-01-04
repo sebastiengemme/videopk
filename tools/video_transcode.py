@@ -8,9 +8,27 @@ import os.path
 import shlex
 
 from typing import Dict
+import tempfile
 
+def apply_rotation(input_file: str, output_file: str, info: Dict):
+    
+    if "side_data_list" in info["streams"][0]:
+        rotation = info["streams"][0]["side_data_list"][0]["rotation"]
+        
+        tmp_output_file=tempfile.NamedTemporaryFile(suffix=".mp4",dir=".",delete=False).name
+        
+        print(f"Applying rotation of {rotation} deg")
+        
+        ffmpeg_args = "ffmpeg -y -display_rotation {}  -i {} -codec copy {}".format(rotation, input_file, tmp_output_file)                   
+        
+        print("ffmpeg command: {}", ffmpeg_args)
+        
+        result = subprocess.run(shlex.split(ffmpeg_args), stdout=sys.stdout, stderr=sys.stderr)
+        
+        # Rename the file
+        os.rename(tmp_output_file, output_file)
 
-def transcode(input_file: str, output_file: str):
+def transcode(input_file: str, output_file: str) -> None:
 
     # Get the info from the file
     info = ffprobe(input_file)
@@ -18,7 +36,7 @@ def transcode(input_file: str, output_file: str):
     format_name = info["format"]["format_name"]
     
     if ( "mp4" in format_name):
-        ffmpeg_args = "ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda -i '{}' -map_metadata 0 -c:a copy -c:v hevc_nvenc -b:v {}k '{}'"
+        ffmpeg_args = "ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda -i '{}' -map_metadata 0 -c:a aac -c:v hevc_nvenc -b:v {}k '{}'"
     else:
         ffmpeg_args = "ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda -i '{}' -c:a aac -c:v hevc_nvenc -b:v {}k '{}'"             
         
@@ -73,6 +91,9 @@ def main():
     print(
         f'Size: {info["streams"][0]["width"]} x {info["streams"][0]["height"]}')
     print(f'fps: {eval(info["streams"][0]["r_frame_rate"])}')
+    
+    # Apply rotation if needed
+    apply_rotation(output_file, output_file, info)
     
     print(f"Output written to {output_file}")
 
