@@ -19,7 +19,7 @@ def apply_rotation(input_file: str, output_file: str, info: Dict):
         
         print(f"Applying rotation of {rotation} deg")
         
-        ffmpeg_args = "ffmpeg -y -display_rotation {}  -i {} -codec copy {}".format(rotation, input_file, tmp_output_file)                   
+        ffmpeg_args = "ffmpeg -y -display_rotation {}  -i {} -map_metadata 0 -codec copy {}".format(rotation, input_file, tmp_output_file)                   
         
         print("ffmpeg command: {}", ffmpeg_args)
         
@@ -42,7 +42,7 @@ def transcode(input_file: str, output_file: str) -> None:
         
     h265_bpp=0.09375
     
-    bitrate = int((stream_info["width"] * stream_info["height"] * eval(stream_info["r_frame_rate"]) * h265_bpp)/1000)
+    bitrate = int((stream_info["width"] * stream_info["height"] * eval(stream_info["avg_frame_rate"]) * h265_bpp)/1000)        
     
     ffmpeg_args = ffmpeg_args.format(input_file, bitrate, output_file)
     
@@ -53,7 +53,10 @@ def transcode(input_file: str, output_file: str) -> None:
     
     print(f"args split: {shlex.split(ffmpeg_args)}")
     
-    result = subprocess.run(shlex.split(ffmpeg_args), stdout=sys.stdout, stderr=sys.stderr)    
+    result = subprocess.run(shlex.split(ffmpeg_args), stdout=sys.stdout, stderr=sys.stderr)  
+    
+    if result.returncode != 0:
+        raise RuntimeError(f"Failed to transcode, command used: {ffmpeg_args}, stream info {stream_info}")  
     
 def ffprobe(input_file: str) -> Dict:
     ffprobe_args = "-v quiet -show_format -show_streams -print_format json".split()
@@ -84,18 +87,21 @@ def main():
     
     # print(f"Output file {output_file}")
     
-    transcode(args.input_file, output_file)
+    try:
+        transcode(args.input_file, output_file)
     
-    # print(info)
+        # print(info)
 
-    print(
-        f'Size: {info["streams"][0]["width"]} x {info["streams"][0]["height"]}')
-    print(f'fps: {eval(info["streams"][0]["r_frame_rate"])}')
-    
-    # Apply rotation if needed
-    apply_rotation(output_file, output_file, info)
-    
-    print(f"Output written to {output_file}")
+        print(
+            f'Size: {info["streams"][0]["width"]} x {info["streams"][0]["height"]}')
+        print(f'fps: {eval(info["streams"][0]["avg_frame_rate"])}')
+        
+        # Apply rotation if needed
+        apply_rotation(output_file, output_file, info)
+        
+        print(f"Output written to {output_file}")
+    except Exception as e:
+        print(f"Failed to run: {e}")
 
 
 if __name__ == "__main__":
