@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "video_transcode"
+version = "0.1.0"
+authors = [
+	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
+]
+maintainers = [
+	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
+]
+
+[project.scripts]
+video-transcode = "video_transcode:main"
