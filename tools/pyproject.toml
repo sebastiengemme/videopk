@@ -4,12 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "video_transcode"
+requires-python = ">= 3.8"
 version = "0.1.0"
 authors = [
 	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
 ]
 maintainers = [
 	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
+]
+dependencies = [
 ]
 
 [project.scripts]
