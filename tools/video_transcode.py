@@ -8,8 +8,185 @@ import os.path
 import logging
 import shlex
 
-from typing import Dict
+from typing import Dict, Sequence, Final
 import tempfile
+
+class Codec(object):
+
+    __decoding = False
+    __encoding = False
+    __video = False
+    __audio = False
+    __subtitle = False
+    __data = False
+    __attachment = False
+    __intra_frame_only = False
+    __lossy = False
+    __lossless = False
+    __name = ""
+    __description = ""
+
+    @property
+    def name(self) -> str:
+        return self.__name
+
+    @name.setter
+    def name(self, value: str) -> None:
+        self.__name = value
+
+    @property
+    def description(self) -> str:
+        return self.__description
+
+    @description.setter
+    def description(self, value: str) -> None:
+        self.__description = value
+
+    @property
+    def decoding(self) -> bool:
+        return self.__decoding
+
+    @decoding.setter
+    def decoding(self, value: bool) -> None:
+        self.__decoding = value
+
+    @property
+    def encoding(self) -> bool:
+        return self.__encoding
+
+    @encoding.setter
+    def encoding(self, value: bool) -> None:
+        self.__encoding = value
+
+    @property
+    def video(self) -> bool:
+        return self.__video
+
+    @video.setter
+    def video(self, value: bool) -> None:
+        self.__video = value
+
+    @property
+    def audio(self) -> bool:
+        return self.__audio
+
+    @audio.setter
+    def audio(self, value: bool) -> None:
+        self.__audio = value
+
+    @property
+    def subtitle(self) -> bool:
+        return self.__subtitle
+
+    @subtitle.setter
+    def subtitle(self, value: bool) -> None:
+        self.__subtitle = value
+
+    @property
+    def data(self) -> bool:
+        return self.__data
+
+    @data.setter
+    def data(self, value: bool) -> None:
+        self.__data = value
+
+    @property
+    def attachment(self) -> bool:
+        return self.__attachment
+
+    @attachment.setter
+    def attachment(self, value: bool) -> None:
+        self.__attachment = value
+
+    @property
+    def intra_frame_only(self) -> bool:
+        return self.__intra_frame_only
+
+    @intra_frame_only.setter
+    def intra_frame_only(self, value: bool) -> None:
+        self.__intra_frame_only = value
+
+    @property
+    def lossy(self) -> bool:
+        return self.__lossy
+
+    @lossy.setter
+    def lossy(self, value: bool) -> None:
+        self.__lossy = value
+
+    @property
+    def lossless(self) -> bool:
+        return self.__lossless
+
+    @lossless.setter
+    def lossless(self, value: bool) -> None:
+        self.__lossless = value
+
+class Codecs(object):
+
+    DECODING_POS: Final[int] = 0
+    ENCODING_POS: Final[int] = 1
+    # Type pos is V, A, S, D
+    TYPE_POS: Final[int] = 2
+    INTRA_FRAME_POS: Final[int] = 3
+    LOSSY_POS: Final[int] = 4
+    LOSSLESS_POS: Final[int] = 5
+
+    CAP_FIELD: Final[int] = 0
+    NAME_FIELD: Final[int] = 1
+    DESC_FIELD: Final[int] = 2
+
+    @staticmethod
+    def parse_codec_line(line: str) -> Codec:
+        fields = line.split()
+
+        codec = Codec()
+
+        codec.name = fields[Codecs.NAME_FIELD]
+        codec.description = fields[Codecs.DESC_FIELD]
+
+        # Parse the capabilities lines
+        if line[Codecs.CAP_FIELD][Codecs.DECODING_POS] == "D":
+            codec.decoding = True
+
+        if line[Codecs.CAP_FIELD][Codecs.ENCODING_POS] == "E":
+            codec.decoding = True
+
+        if line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "V":
+            codec.video = True
+        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "A":
+            codec.audio = True
+        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "S":
+            codec.subtitle = True
+        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "D":
+            codec.data = True
+        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "T":
+            codec.attachment = True
+
+        if line[Codecs.CAP_FIELD][Codecs.INTRA_FRAME_POS] == "I":
+            codec.intra_frame_only = True
+
+        if line[Codecs.CAP_FIELD][Codecs.LOSSY_POS] == "L":
+            codec.lossy = True
+
+        if line[Codecs.CAP_FIELD][Codecs.LOSSLESS_POS] == "S":
+            codec.lossless = True
+
+        return codec
+
+    @staticmethod
+    def list_codecs() -> Sequence[Codec]:
+        result = subprocess.run(["ffmpeg", "-codecs"], capture_output=True, check=True)
+
+        codecs = []
+
+        for line in result.stdout.decode("utf-8").split("\n"):
+            try:
+                codecs.append(Codecs.parse_codec_line(line))
+            except:
+                pass
+
+        return codecs
 
 def apply_rotation(input_file: str, output_file: str, info: Dict):
 
