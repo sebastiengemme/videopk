@@ -7,19 +7,23 @@ import sys
 import os.path
 import logging
 import shlex
+from enum import Enum
 
 from typing import Dict, Sequence, Final
 import tempfile
+
+class CodecType(Enum):
+    AUDIO = 0
+    VIDEO = 1
+    SUBTITLE = 2
+    ATTACHMENT = 3
+    DATA = 4
 
 class Codec(object):
 
     __decoding = False
     __encoding = False
-    __video = False
-    __audio = False
-    __subtitle = False
-    __data = False
-    __attachment = False
+    __type = CodecType.VIDEO
     __intra_frame_only = False
     __lossy = False
     __lossless = False
@@ -59,44 +63,12 @@ class Codec(object):
         self.__encoding = value
 
     @property
-    def video(self) -> bool:
-        return self.__video
+    def type(self) -> CodecType:
+        return self.__type 
 
-    @video.setter
-    def video(self, value: bool) -> None:
-        self.__video = value
-
-    @property
-    def audio(self) -> bool:
-        return self.__audio
-
-    @audio.setter
-    def audio(self, value: bool) -> None:
-        self.__audio = value
-
-    @property
-    def subtitle(self) -> bool:
-        return self.__subtitle
-
-    @subtitle.setter
-    def subtitle(self, value: bool) -> None:
-        self.__subtitle = value
-
-    @property
-    def data(self) -> bool:
-        return self.__data
-
-    @data.setter
-    def data(self, value: bool) -> None:
-        self.__data = value
-
-    @property
-    def attachment(self) -> bool:
-        return self.__attachment
-
-    @attachment.setter
-    def attachment(self, value: bool) -> None:
-        self.__attachment = value
+    @type.setter
+    def type(self, value: CodecType) -> None:
+        self.__type = value
 
     @property
     def intra_frame_only(self) -> bool:
