@@ -4,6 +4,40 @@ from video_tools.video_transcode import CodecType, Codecs, Codec
 
 class CodecsTestCase(unittest.TestCase):
 
+    def test_list_codecs(self):
+        codecs = Codecs.list_codecs()
+
+        self.assertTrue(len(codecs) > 0)
+
+        # Find the hevc codec
+        hevc = [x for x in codecs if x.name == "hevc"]
+
+        self.assertTrue(len(hevc) == 1)
+
+    def test_parse_line(self):
+
+        hevc = Codecs.parse_codec_line(" DEV.L. hevc                 H.265 / HEVC (High Efficiency Video Coding) (decoders: hevc hevc_v4l2m2m hevc_cuvid) (encoders: hevc_nvenc hevc_v4l2m2m)")
+        
+        self.assertTrue(hevc.encoding)
+        self.assertEqual(hevc.type, CodecType.VIDEO)
+        self.assertTrue(hevc.lossy)
+        self.assertFalse(hevc.lossless)
+        self.assertFalse(hevc.intra_frame_only)
+        self.assertEqual(hevc.name, "hevc")
+        self.assertEqual(hevc.description, "H.265 / HEVC (High Efficiency Video Coding) (decoders: hevc hevc_v4l2m2m hevc_cuvid) (encoders: hevc_nvenc hevc_v4l2m2m)")
+
+        hevc = Codecs.parse_codec_line("DEV.L. hevc                 H.265 / HEVC (High Efficiency Video Coding) (decoders: hevc hevc_v4l2m2m hevc_cuvid) (encoders: hevc_nvenc hevc_v4l2m2m)")
+        self.assertTrue(hevc.encoding)
+        self.assertEqual(hevc.type, CodecType.VIDEO)
+        self.assertTrue(hevc.lossy)
+        self.assertFalse(hevc.lossless)
+        self.assertFalse(hevc.intra_frame_only)
+        self.assertEqual(hevc.name, "hevc")
+        self.assertEqual(hevc.description, "H.265 / HEVC (High Efficiency Video Coding) (decoders: hevc hevc_v4l2m2m hevc_cuvid) (encoders: hevc_nvenc hevc_v4l2m2m)")
+
+        with self.assertRaises(TypeError):
+            hevc = Codecs.parse_codec_line("test 2")
+       
     def test_codec(self):
         codec = Codec()
         self.assertFalse(codec.decoding)

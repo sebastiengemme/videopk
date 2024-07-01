@@ -8,6 +8,7 @@ import os.path
 import logging
 import shlex
 from enum import Enum
+import re
 
 from typing import Dict, Sequence, Final
 import tempfile
@@ -104,47 +105,51 @@ class Codecs(object):
     LOSSY_POS: Final[int] = 4
     LOSSLESS_POS: Final[int] = 5
 
-    CAP_FIELD: Final[int] = 0
-    NAME_FIELD: Final[int] = 1
-    DESC_FIELD: Final[int] = 2
+    CAP_FIELD: Final[int] = 1
+    NAME_FIELD: Final[int] = 2
+    DESC_FIELD: Final[int] = 3
 
     @staticmethod
     def parse_codec_line(line: str) -> Codec:
-        fields = line.split()
+        fields = re.search('([^\s]+)\s([^\s]+)\s*(.+)',line.lstrip().rstrip())
 
-        codec = Codec()
+        if fields:
 
-        codec.name = fields[Codecs.NAME_FIELD]
-        codec.description = fields[Codecs.DESC_FIELD]
+            codec = Codec()
 
-        # Parse the capabilities lines
-        if line[Codecs.CAP_FIELD][Codecs.DECODING_POS] == "D":
-            codec.decoding = True
+            codec.name = fields[Codecs.NAME_FIELD]
+            codec.description = fields[Codecs.DESC_FIELD]
 
-        if line[Codecs.CAP_FIELD][Codecs.ENCODING_POS] == "E":
-            codec.decoding = True
+            # Parse the capabilities lines
+            if fields[Codecs.CAP_FIELD][Codecs.DECODING_POS] == "D":
+                codec.decoding = True
 
-        if line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "V":
-            codec.video = True
-        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "A":
-            codec.audio = True
-        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "S":
-            codec.subtitle = True
-        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "D":
-            codec.data = True
-        elif line[Codecs.CAP_FIELD][Codecs.CAP_FIELD] == "T":
-            codec.attachment = True
+            if fields[Codecs.CAP_FIELD][Codecs.ENCODING_POS] == "E":
+                codec.encoding = True
 
-        if line[Codecs.CAP_FIELD][Codecs.INTRA_FRAME_POS] == "I":
-            codec.intra_frame_only = True
+            if fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "V":
+                codec.type = CodecType.VIDEO
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "A":
+                codec.type = CodecType.AUDIO
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "S":
+                codec.type = CodecType.SUBTITLE
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "D":
+                codec.type = CodecType.DATA
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "T":
+                codec.type = CodecType.ATTACHMENT
 
-        if line[Codecs.CAP_FIELD][Codecs.LOSSY_POS] == "L":
-            codec.lossy = True
+            if fields[Codecs.CAP_FIELD][Codecs.INTRA_FRAME_POS] == "I":
+                codec.intra_frame_only = True
 
-        if line[Codecs.CAP_FIELD][Codecs.LOSSLESS_POS] == "S":
-            codec.lossless = True
+            if fields[Codecs.CAP_FIELD][Codecs.LOSSY_POS] == "L":
+                codec.lossy = True
 
-        return codec
+            if fields[Codecs.CAP_FIELD][Codecs.LOSSLESS_POS] == "S":
+                codec.lossless = True
+
+            return codec
+        else:
+            raise TypeError("invalid line")
 
     @staticmethod
     def list_codecs() -> Sequence[Codec]:
