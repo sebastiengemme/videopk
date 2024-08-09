@@ -7,100 +7,17 @@ import sys
 import os.path
 import logging
 import shlex
-from enum import Enum
 import re
 
 from typing import Dict, Sequence, Final
 import tempfile
 
-class CodecType(Enum):
-    AUDIO = 0
-    VIDEO = 1
-    SUBTITLE = 2
-    ATTACHMENT = 3
-    DATA = 4
-
-class Codec(object):
-
-    __decoding = False
-    __encoding = False
-    __type = CodecType.VIDEO
-    __intra_frame_only = False
-    __lossy = False
-    __lossless = False
-    __name = ""
-    __description = ""
-
-    @property
-    def name(self) -> str:
-        return self.__name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        """
-        Sets the name
-        
-        :param value: the new value that property name should take
-        """
-        self.__name = value
-
-    @property
-    def description(self) -> str:
-        return self.__description
-
-    @description.setter
-    def description(self, value: str) -> None:
-        self.__description = value
-
-    @property
-    def decoding(self) -> bool:
-        return self.__decoding
-
-    @decoding.setter
-    def decoding(self, value: bool) -> None:
-        self.__decoding = value
-
-    @property
-    def encoding(self) -> bool:
-        return self.__encoding
-
-    @encoding.setter
-    def encoding(self, value: bool) -> None:
-        self.__encoding = value
-
-    @property
-    def type(self) -> CodecType:
-        return self.__type 
-
-    @type.setter
-    def type(self, value: CodecType) -> None:
-        self.__type = value
-
-    @property
-    def intra_frame_only(self) -> bool:
-        return self.__intra_frame_only
-
-    @intra_frame_only.setter
-    def intra_frame_only(self, value: bool) -> None:
-        self.__intra_frame_only = value
-
-    @property
-    def lossy(self) -> bool:
-        return self.__lossy
-
-    @lossy.setter
-    def lossy(self, value: bool) -> None:
-        self.__lossy = value
-
-    @property
-    def lossless(self) -> bool:
-        return self.__lossless
-
-    @lossless.setter
-    def lossless(self, value: bool) -> None:
-        self.__lossless = value
+from .types import Codec, CodecType
 
 class Codecs(object):
+    """
+    Used to list codecs installed on the platform
+    """
 
     DECODING_POS: Final[int] = 0
     ENCODING_POS: Final[int] = 1
@@ -113,6 +30,19 @@ class Codecs(object):
     CAP_FIELD: Final[int] = 1
     NAME_FIELD: Final[int] = 2
     DESC_FIELD: Final[int] = 3
+
+    _instance = None
+
+    def __init__(self):
+        raise RuntimeError("Call instance() instead")
+
+    @classmethod
+    def instance(cls: type["Codecs"]) -> "Codecs":
+        if cls._instance is None:
+            cls._instance = cls.__new__(cls)
+
+        return cls._instance
+
 
     @staticmethod
     def parse_codec_line(line: str) -> Codec:
@@ -156,8 +86,7 @@ class Codecs(object):
         else:
             raise TypeError("invalid line")
 
-    @staticmethod
-    def list_codecs() -> Sequence[Codec]:
+    def list_codecs(self) -> Sequence[Codec]:
         """Lists the codecs installed
 
         :returns: a list of installed codecs

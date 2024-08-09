@@ -5,7 +5,7 @@ from video_tools.video_transcode import CodecType, Codecs, Codec
 class CodecsTestCase(unittest.TestCase):
 
     def test_list_codecs(self):
-        codecs = Codecs.list_codecs()
+        codecs = Codecs.instance().list_codecs()
 
         self.assertTrue(len(codecs) > 0)
 
