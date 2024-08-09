@@ -37,6 +37,11 @@ class Codec(object):
 
     @name.setter
     def name(self, value: str) -> None:
+        """
+        Sets the name
+        
+        :param value: the new value that property name should take
+        """
         self.__name = value
 
     @property
@@ -111,7 +116,7 @@ class Codecs(object):
 
     @staticmethod
     def parse_codec_line(line: str) -> Codec:
-        fields = re.search('([^\s]+)\s([^\s]+)\s*(.+)',line.lstrip().rstrip())
+        fields = re.search("([^\\s]+)\\s([^\\s]+)\\s*(.+)",line.lstrip().rstrip())
 
         if fields:
 
@@ -153,6 +158,11 @@ class Codecs(object):
 
     @staticmethod
     def list_codecs() -> Sequence[Codec]:
+        """Lists the codecs installed
+
+        :returns: a list of installed codecs
+        :raises CalledProcessError if something goes wrong
+         """
         result = subprocess.run(["ffmpeg", "-codecs"], capture_output=True, check=True)
 
         codecs = []
