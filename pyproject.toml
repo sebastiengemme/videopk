@@ -16,6 +16,7 @@ maintainers = [
 	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
 ]
 dependencies = [
+	"zope.interface",
 ]
 
 [project.scripts]

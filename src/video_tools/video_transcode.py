@@ -13,7 +13,11 @@ from typing import Dict, Sequence, Final
 import tempfile
 
 from .types import Codec, CodecType
+from .interfaces import ICodecs
 
+from zope.interface import implementer
+
+@implementer(ICodecs)
 class Codecs(object):
     """
     Used to list codecs installed on the platform
