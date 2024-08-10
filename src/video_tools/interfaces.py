@@ -11,6 +11,6 @@ class ICodecs(interface.Interface):
 
 class ITranscoder(interface.Interface):
 
-    def transcode(input_file: str, output_file: str) -> Future
+    def transcode(input_file: str, output_file: str) -> Future:
         """
         """

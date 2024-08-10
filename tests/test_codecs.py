@@ -1,6 +1,7 @@
 import unittest
 
-from video_tools.video_transcode import CodecType, Codecs, Codec
+from video_tools.types import CodecType,  Codec
+from video_tools.ffmpeg import *
 
 class CodecsTestCase(unittest.TestCase):
 
