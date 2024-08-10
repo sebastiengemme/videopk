@@ -10,10 +10,10 @@ from asyncio import Future
 import shlex
 import os
 import re
+from ffmpeg import FFmpeg
 
-from zope.interface import implementer
 from typing import Dict, Final, Sequence
-from .types import Codec, CodecType
+from .types import Codec, CodecType, TranscodingParameters
 
 def ffprobe(input_file: str) -> Dict:
     ffprobe_args = "-v quiet -show_format -show_streams -print_format json".split()
@@ -25,8 +25,7 @@ def ffprobe(input_file: str) -> Dict:
 
     return json.loads(result.stdout)
 
-@implementer(ICodecs)
-class Codecs(object):
+class Codecs(ICodecs):
     """
     Used to list codecs installed on the platform
     """
@@ -116,8 +115,9 @@ class Codecs(object):
 
         return codecs
 
-@implementer(ITranscoder)
-class Transcoder(object):
+class Transcoder(ITranscoder):
+
+    parameters: TranscodingParameters = TranscodingParameters()
 
     def __init__(self) -> None:
         pass
