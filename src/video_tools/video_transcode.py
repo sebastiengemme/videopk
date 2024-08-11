@@ -4,8 +4,10 @@ import argparse
 import os.path
 import logging
 import traceback
+import sys
 
 from .ffmpeg import Transcoder
+from importlib.metadata import version
 
 import asyncio
 
@@ -14,6 +16,7 @@ async def run():
     parser.add_argument("input_file", help="Input file")
     parser.add_argument("output_dir", help="Outout directory")
     parser.add_argument("-v","--verbose", action="store_true")
+    parser.add_argument("--version", action="version", version=version("video_tools"))
 
     args = parser.parse_args()
 
