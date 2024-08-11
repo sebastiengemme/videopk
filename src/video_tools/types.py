@@ -7,6 +7,12 @@ class CodecType(Enum):
     ATTACHMENT = 3
     DATA = 4
 
+class TranscodingParameters(object):
+
+    try_gpu = True
+    auto_bitrate= True
+    only_video= False
+
 class Codec(object):
 
     __decoding = False

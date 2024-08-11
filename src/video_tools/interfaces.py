@@ -1,16 +1,20 @@
-from zope import interface
 from typing import Sequence
-from .types import Codec
+from .types import Codec, TranscodingParameters
 from asyncio import Future
+from typing import Protocol
 
-class ICodecs(interface.Interface):
+class ICodecs(Protocol):
 
-    def list_codecs() -> Sequence[Codec]:
+    def list_codecs(self) -> Sequence[Codec]:
         """
         """
+        ...
 
-class ITranscoder(interface.Interface):
+class ITranscoder(Protocol):
 
-    def transcode(input_file: str, output_file: str) -> Future
+    parameters: TranscodingParameters
+
+    def transcode(self, input_file: str, output_file: str) -> Future:
         """
         """
+        ...
