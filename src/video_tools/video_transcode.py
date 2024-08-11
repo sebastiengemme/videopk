@@ -7,9 +7,106 @@ import sys
 import os.path
 import logging
 import shlex
+import re
 
-from typing import Dict
+from typing import Dict, Sequence, Final
 import tempfile
+
+from .types import Codec, CodecType
+from .interfaces import ICodecs
+
+from zope.interface import implementer
+
+@implementer(ICodecs)
+class Codecs(object):
+    """
+    Used to list codecs installed on the platform
+    """
+
+    DECODING_POS: Final[int] = 0
+    ENCODING_POS: Final[int] = 1
+    # Type pos is V, A, S, D
+    TYPE_POS: Final[int] = 2
+    INTRA_FRAME_POS: Final[int] = 3
+    LOSSY_POS: Final[int] = 4
+    LOSSLESS_POS: Final[int] = 5
+
+    CAP_FIELD: Final[int] = 1
+    NAME_FIELD: Final[int] = 2
+    DESC_FIELD: Final[int] = 3
+
+    _instance = None
+
+    def __init__(self):
+        raise RuntimeError("Call instance() instead")
+
+    @classmethod
+    def instance(cls: type["Codecs"]) -> "Codecs":
+        if cls._instance is None:
+            cls._instance = cls.__new__(cls)
+
+        return cls._instance
+
+
+    @staticmethod
+    def parse_codec_line(line: str) -> Codec:
+        fields = re.search("([^\\s]+)\\s([^\\s]+)\\s*(.+)",line.lstrip().rstrip())
+
+        if fields:
+
+            codec = Codec()
+
+            codec.name = fields[Codecs.NAME_FIELD]
+            codec.description = fields[Codecs.DESC_FIELD]
+
+            # Parse the capabilities lines
+            if fields[Codecs.CAP_FIELD][Codecs.DECODING_POS] == "D":
+                codec.decoding = True
+
+            if fields[Codecs.CAP_FIELD][Codecs.ENCODING_POS] == "E":
+                codec.encoding = True
+
+            if fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "V":
+                codec.type = CodecType.VIDEO
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "A":
+                codec.type = CodecType.AUDIO
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "S":
+                codec.type = CodecType.SUBTITLE
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "D":
+                codec.type = CodecType.DATA
+            elif fields[Codecs.CAP_FIELD][Codecs.TYPE_POS] == "T":
+                codec.type = CodecType.ATTACHMENT
+
+            if fields[Codecs.CAP_FIELD][Codecs.INTRA_FRAME_POS] == "I":
+                codec.intra_frame_only = True
+
+            if fields[Codecs.CAP_FIELD][Codecs.LOSSY_POS] == "L":
+                codec.lossy = True
+
+            if fields[Codecs.CAP_FIELD][Codecs.LOSSLESS_POS] == "S":
+                codec.lossless = True
+
+            return codec
+        else:
+            raise TypeError("invalid line")
+
+    def list_codecs(self) -> Sequence[Codec]:
+        """Lists the codecs installed
+
+        :returns: a list of installed codecs
+        :raises CalledProcessError if something goes wrong
+         """
+        result = subprocess.run(["ffmpeg", "-codecs"], capture_output=True, check=True)
+
+        codecs = []
+
+        for line in result.stdout.decode("utf-8").split("\n"):
+            try:
+                codecs.append(Codecs.parse_codec_line(line))
+            except:
+                pass
+
+        return codecs
 
 def apply_rotation(input_file: str, output_file: str, info: Dict):
 
