@@ -4,7 +4,7 @@ import argparse
 import os.path
 import logging
 import traceback
-import sys
+import logging
 
 from .ffmpeg import Transcoder
 from importlib.metadata import version
@@ -15,12 +15,19 @@ async def run():
     parser = argparse.ArgumentParser("video transcoding")
     parser.add_argument("input_file", help="Input file")
     parser.add_argument("output_dir", help="Outout directory")
-    parser.add_argument("-v","--verbose", action="store_true")
+    parser.add_argument("-v","--verbose", action="store_true", help="Verbose output")
+    parser.add_argument("-n","--no_gpu", action="store_true", help="Do not use gpu")
     parser.add_argument("--version", action="version", version=version("video_tools"))
 
     args = parser.parse_args()
 
     transcoder = Transcoder()
+
+    transcoder.parameters.try_gpu = not args.no_gpu
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
     try:
         if not os.path.isdir(args.output_dir):
             os.makedirs(args.output_dir)
