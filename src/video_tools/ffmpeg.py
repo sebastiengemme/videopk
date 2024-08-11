@@ -162,8 +162,11 @@ class Transcoder(ITranscoder):
 
         h265_bpp = 0.09375
 
-        bitrate = int((stream_info["width"] * stream_info["height"]
-                      * eval(stream_info["avg_frame_rate"]) * h265_bpp)/1000)
+        if self.parameters.auto_bitrate:
+            bitrate = int((stream_info["width"] * stream_info["height"]
+                          * eval(stream_info["avg_frame_rate"]) * h265_bpp)/1000)
+        else:
+            bitrate = self.parameters.bitrate // 1000
 
         # Default output options
         output_options: dict[str,Optional[types.Option]] = {}

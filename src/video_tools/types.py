@@ -12,6 +12,8 @@ class TranscodingParameters(object):
     try_gpu = True
     auto_bitrate= True
     only_video= False
+    bitrate = 0
+    auto_bitrate = True
 
 class Codec(object):
 
