@@ -1,18 +1,17 @@
 
+from ffmpeg.ffmpeg import types
 from .interfaces import ITranscoder, ICodecs
 import asyncio
-import sys
 import tempfile
 import json
 import subprocess
 import logging
 from asyncio import Future
-import shlex
 import os
 import re
 from ffmpeg import FFmpeg
 
-from typing import Dict, Final, Sequence
+from typing import Dict, Final, Optional, Sequence
 from .types import Codec, CodecType, TranscodingParameters
 
 def ffprobe(input_file: str) -> Dict:
@@ -135,13 +134,19 @@ class Transcoder(ITranscoder):
 
             logging.debug(f"Applying rotation of {rotation} deg")
 
-            ffmpeg_args = "ffmpeg -y -display_rotation {}  -i {} -map_metadata 0 -codec copy {}".format(
-                rotation, input_file, tmp_output_file)
+            ffmpeg_cmd = FFmpeg()
 
-            logging.debug("ffmpeg command: {}", ffmpeg_args)
+            ffmpeg_cmd.option("y").option("display_rotation", rotation).input(input_file).output(tmp_output_file, {"map_metadata":0, "codec": "copy"})
 
-            result = subprocess.run(shlex.split(
-                ffmpeg_args), stdout=sys.stdout, stderr=sys.stderr)
+            ffmpeg_cmd.execute()
+
+#            ffmpeg_args = "ffmpeg -y -display_rotation {}  -i {} -map_metadata 0 -codec copy {}".format(
+#                rotation, input_file, tmp_output_file)
+
+            # logging.debug("ffmpeg command: {}", ffmpeg_args)
+            #
+            # result = subprocess.run(shlex.split(
+            #     ffmpeg_args), stdout=sys.stdout, stderr=sys.stderr)
 
             # Rename the file
             os.rename(tmp_output_file, output_file)
@@ -153,32 +158,35 @@ class Transcoder(ITranscoder):
         stream_info = info["streams"][0]
         format_name = info["format"]["format_name"]
 
-        if ("mp4" in format_name):
-            ffmpeg_args = "ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda -i '{}' -map_metadata 0 -movflags use_metadata_tags -c:a aac -c:v hevc_nvenc -b:v {}k '{}'"
-        else:
-            ffmpeg_args = "ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda -i '{}' -c:a aac -c:v hevc_nvenc -b:v {}k '{}'"
+        ffmpeg_cmd = FFmpeg()
 
         h265_bpp = 0.09375
 
         bitrate = int((stream_info["width"] * stream_info["height"]
                       * eval(stream_info["avg_frame_rate"]) * h265_bpp)/1000)
 
-        ffmpeg_args = ffmpeg_args.format(input_file, bitrate, output_file)
+        # Default output options
+        output_options: dict[str,Optional[types.Option]] = { "c:v": "hevc_nvenc" }
+
+        if "mp4" in format_name:
+            output_options["map_metadata"] = 0
+            output_options["movflags"] = "use_metadata_tags"
+
+        if self.parameters.only_video:
+            output_options["an"] = None
+        else:
+            output_options["c:a"] = "aac"
+
+        output_options["b:v"] = "{}k".format(bitrate)
+
+        ffmpeg_cmd.option("y").option("vsync",0) \
+        .option("hwaccel", "cuda").option("hwaccel_output_format", "cuda").input(input_file).output(output_file, options=output_options)
+
+        ffmpeg_cmd.execute()
 
         if 'bit_rate' in stream_info:
             logging.debug(f"original bitrate: {stream_info['bit_rate']}")
         logging.debug(f"bitrate for {stream_info['width']}x{stream_info['height']}@{eval(stream_info['r_frame_rate'])}: {bitrate}kbps")
-
-        logging.debug(f"ffmpeg command: {ffmpeg_args}")
-
-        logging.debug(f"args split: {shlex.split(ffmpeg_args)}")
-
-        result = subprocess.run(shlex.split(ffmpeg_args),
-                                stdout=sys.stdout, stderr=sys.stderr)
-
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to transcode, command used: {ffmpeg_args}, stream info {stream_info}")
 
         self.__apply_rotation(output_file, output_file, info)
 

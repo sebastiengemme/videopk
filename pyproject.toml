@@ -16,6 +16,7 @@ maintainers = [
 	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
 ]
 dependencies = [
+	"python-ffmpeg",
 ]
 
 [project.scripts]
