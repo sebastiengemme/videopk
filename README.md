@@ -12,5 +12,5 @@ Currently only one tool is available ```video-transcode```, please type ```video
 pip install video-tools
 ```
 
-Also, make sure ```ffmpeg``` is installed and in your path. For gpu support, make sure to install (FFmpeg NVIDIA GPU Hardware Acceleation)[https://docs.nvidia.com/video-technologies/video-codec-sdk/11.1/ffmpeg-with-nvidia-gpu/index.html]
+Also, make sure ```ffmpeg``` is installed and in your path. For gpu support, make sure to install [FFmpeg NVIDIA GPU Hardware Acceleation](https://docs.nvidia.com/video-technologies/video-codec-sdk/11.1/ffmpeg-with-nvidia-gpu/index.html)
 
