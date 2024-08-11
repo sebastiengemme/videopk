@@ -166,7 +166,13 @@ class Transcoder(ITranscoder):
                       * eval(stream_info["avg_frame_rate"]) * h265_bpp)/1000)
 
         # Default output options
-        output_options: dict[str,Optional[types.Option]] = { "c:v": "hevc_nvenc" }
+        output_options: dict[str,Optional[types.Option]] = {}
+        if self.parameters.try_gpu:
+            output_options["c:v"] = "hevc_nvenc" 
+        else:
+            output_options["c:v"] = "libx265"
+
+        logging.debug(f"format name: {format_name}")
 
         if "mp4" in format_name:
             output_options["map_metadata"] = 0
@@ -179,8 +185,12 @@ class Transcoder(ITranscoder):
 
         output_options["b:v"] = "{}k".format(bitrate)
 
-        ffmpeg_cmd.option("y").option("vsync",0) \
-        .option("hwaccel", "cuda").option("hwaccel_output_format", "cuda").input(input_file).output(output_file, options=output_options)
+        logging.debug(f"output_options: {output_options}")
+
+        ffmpeg_cmd.option("y").option("vsync",0).input(input_file).output(output_file, options=output_options)
+
+        if self.parameters.try_gpu:
+            ffmpeg_cmd.option("hwaccel", "cuda").option("hwaccel_output_format","cuda")
 
         ffmpeg_cmd.execute()
 
