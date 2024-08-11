@@ -3,6 +3,7 @@
 import argparse
 import os.path
 import logging
+import traceback
 
 from .ffmpeg import Transcoder
 
@@ -12,6 +13,7 @@ async def run():
     parser = argparse.ArgumentParser("video transcoding")
     parser.add_argument("input_file", help="Input file")
     parser.add_argument("output_dir", help="Outout directory")
+    parser.add_argument("-v","--verbose", action="store_true")
 
     args = parser.parse_args()
 
@@ -26,6 +28,8 @@ async def run():
 
     except Exception as e:
         logging.critical(f"Failed to run: {e}")
+        if args.verbose:
+            traceback.print_exception(e)
 
 
 def main():
