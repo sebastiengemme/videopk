@@ -17,6 +17,12 @@ from .types import Codec, CodecType, TranscodingParameters
 from .constants import H265_BPP
 
 def ffprobe(input_file: str) -> Dict:
+    """Runs ffprobe on a file an returns
+
+    :param input_file: the file to probe.
+
+    :return: a dictionary containing the different properties of the file.
+    """
     ffprobe_args = "-v quiet -show_format -show_streams -print_format json".split()
 
     ffprobe_exec = "ffprobe"
@@ -117,6 +123,8 @@ class Codecs(ICodecs):
         return codecs
 
 class Transcoder(ITranscoder):
+    """The FFmpeg implementation of interface ITranscoder.
+    """
 
     parameters: TranscodingParameters = TranscodingParameters()
 
@@ -142,15 +150,6 @@ class Transcoder(ITranscoder):
 
             ffmpeg_cmd.execute()
 
-#            ffmpeg_args = "ffmpeg -y -display_rotation {}  -i {} -map_metadata 0 -codec copy {}".format(
-#                rotation, input_file, tmp_output_file)
-
-            # logging.debug("ffmpeg command: {}", ffmpeg_args)
-            #
-            # result = subprocess.run(shlex.split(
-            #     ffmpeg_args), stdout=sys.stdout, stderr=sys.stderr)
-
-            # Rename the file
             os.rename(tmp_output_file, output_file)
 
     async def __do_transcode(self, input_file: str, output_file: str) -> None:

@@ -9,7 +9,7 @@ Currently only one tool is available ```video-transcode```, please type ```video
 ## Installation
 
 ```bash
-pip install video-tools
+pip install videopk
 ```
 
 The code relies on [FFmpeg](https://www.ffmpeg.org/) to perform the conversion. Make sure ```ffmpeg``` is installed and in your path. This code has not been tested on windows, only under Linux.
