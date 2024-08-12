@@ -8,13 +8,34 @@ packages = ["src/video_tools"]
 [project]
 name = "video_tools"
 requires-python = ">= 3.8"
-version = "1.2.0"
+version = "1.2.1"
 authors = [
-	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
+	{name = "Sébastien Gemme", email = "sgemme7@gmail.com"},
 ]
 maintainers = [
-	{name = "Sebastien Gemme", email = "sgemme7@gmail.com"},
+	{name = "Sébastien Gemme", email = "sgemme7@gmail.com"},
 ]
+
+license = { file = "LICENSE" }
+readme = "README.md"
+
+classifiers = [
+	"License :: OSI Approved :: MIT License",
+	"Programming Language :: Python",
+	"Programming Language :: Python :: 3",
+	"Topic :: Multimedia :: Video",
+	"Topic :: Multimedia :: Video :: Conversion",
+	"Development Status :: 5 - Production/Stable"
+]
+
+keywords = ["video", "transcoding"]
+
+[project.urls]
+homepage = "https://github.com/sebastiengemme/video_tools"
+
+[project.optional-dependencies]
+dev = ["bumpversion"]
+
 dependencies = [
 	"python-ffmpeg",
 ]

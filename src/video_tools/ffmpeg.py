@@ -14,6 +14,8 @@ from ffmpeg import FFmpeg
 from typing import Dict, Final, Optional, Sequence
 from .types import Codec, CodecType, TranscodingParameters
 
+from .constants import H265_BPP
+
 def ffprobe(input_file: str) -> Dict:
     ffprobe_args = "-v quiet -show_format -show_streams -print_format json".split()
 
@@ -160,10 +162,11 @@ class Transcoder(ITranscoder):
 
         ffmpeg_cmd = FFmpeg()
 
-        h265_bpp = 0.09375
-
-        bitrate = int((stream_info["width"] * stream_info["height"]
-                      * eval(stream_info["avg_frame_rate"]) * h265_bpp)/1000)
+        if self.parameters.auto_bitrate:
+            bitrate = int((stream_info["width"] * stream_info["height"]
+                          * eval(stream_info["avg_frame_rate"]) * H265_BPP)/1000)
+        else:
+            bitrate = self.parameters.bitrate // 1000
 
         # Default output options
         output_options: dict[str,Optional[types.Option]] = {}
