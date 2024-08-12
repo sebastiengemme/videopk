@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 packages = ["src/video_tools"]
 
 [project]
-name = "video_tools"
+name = "videopk"
 requires-python = ">= 3.8"
 version = "1.2.3"
 authors = [
@@ -43,4 +43,4 @@ dependencies = [
 ]
 
 [project.scripts]
-video-transcode = "video_tools.video_transcode:main"
+video-transcode = "videopk.video_transcode:main"

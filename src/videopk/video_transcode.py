@@ -17,7 +17,7 @@ async def run():
     parser.add_argument("output_dir", help="Outout directory")
     parser.add_argument("-v","--verbose", action="store_true", help="Verbose output")
     parser.add_argument("-n","--no_gpu", action="store_true", help="Do not use gpu")
-    parser.add_argument("--version", action="version", version=version("video_tools"))
+    parser.add_argument("--version", action="version", version=version("videopk"))
     parser.add_argument("-b","--bitrate", type=int, help="Bitrate, in bps, if not specified, nominal bitrate is calculated (preferred option)")
 
     args = parser.parse_args()

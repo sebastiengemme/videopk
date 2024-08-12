@@ -8,6 +8,8 @@ class CodecType(Enum):
     DATA = 4
 
 class TranscodingParameters(object):
+    """Transcoding parameter
+    """
 
     try_gpu = True
     auto_bitrate= True
