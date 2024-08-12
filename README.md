@@ -20,7 +20,7 @@ The code relies on [FFmpeg](https://www.ffmpeg.org/) to perform the conversion. 
 ## How to use
 
 To transcode a video file, use ```video-transcode```:
-```bash
+```
 usage: video transcoding [-h] [-v] [-n] [--version] [-b BITRATE] input_file output_dir
 
 positional arguments:
