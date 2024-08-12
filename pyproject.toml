@@ -33,7 +33,7 @@ classifiers = [
 keywords = ["video", "transcoding"]
 
 [project.urls]
-homepage = "https://github.com/sebastiengemme/video_tools"
+homepage = "https://github.com/sebastiengemme/videopk"
 
 [project.optional-dependencies]
 dev = ["bumpversion"]
