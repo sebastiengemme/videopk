@@ -32,15 +32,15 @@ classifiers = [
 
 keywords = ["video", "transcoding"]
 
+dependencies = [
+	"python-ffmpeg",
+]
+
 [project.urls]
 homepage = "https://github.com/sebastiengemme/videopk"
 
 [project.optional-dependencies]
 dev = ["bumpversion"]
-
-dependencies = [
-	"python-ffmpeg",
-]
 
 [project.scripts]
 video-transcode = "videopk.video_transcode:main"
