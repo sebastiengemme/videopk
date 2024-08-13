@@ -4,7 +4,7 @@ from videopk.ffmpeg import *
 from videopk.types import Codec, CodecType
 
 
-def list_codecs():
+def test_list_codecs():
     codecs = Codecs.instance().list_codecs()
 
     assert len(codecs) > 0
@@ -15,7 +15,7 @@ def list_codecs():
     assert len(hevc) == 1
 
 
-def parse_line():
+def test_parse_line():
     hevc = Codecs.parse_codec_line(
         " DEV.L. hevc                 H.265 / HEVC (High Efficiency Video Coding) (decoders: hevc hevc_v4l2m2m hevc_cuvid) (encoders: hevc_nvenc hevc_v4l2m2m)"
     )
@@ -49,7 +49,7 @@ def parse_line():
         hevc = Codecs.parse_codec_line("test 2")
 
 
-def codec():
+def test_codec():
     codec = Codec()
     assert not codec.decoding
     assert not codec.encoding
