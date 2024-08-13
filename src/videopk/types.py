@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class CodecType(Enum):
     AUDIO = 0
     VIDEO = 1
@@ -7,18 +8,18 @@ class CodecType(Enum):
     ATTACHMENT = 3
     DATA = 4
 
+
 class TranscodingParameters(object):
-    """Transcoding parameter
-    """
+    """Transcoding parameter"""
 
     try_gpu = True
-    auto_bitrate= True
-    only_video= False
+    auto_bitrate = True
+    only_video = False
     bitrate = 0
     auto_bitrate = True
 
-class Codec(object):
 
+class Codec(object):
     __decoding = False
     __encoding = False
     __type = CodecType.VIDEO
@@ -36,7 +37,7 @@ class Codec(object):
     def name(self, value: str) -> None:
         """
         Sets the name
-        
+
         :param value: the new value that property name should take
         """
         self.__name = value
@@ -67,7 +68,7 @@ class Codec(object):
 
     @property
     def type(self) -> CodecType:
-        return self.__type 
+        return self.__type
 
     @type.setter
     def type(self, value: CodecType) -> None:
