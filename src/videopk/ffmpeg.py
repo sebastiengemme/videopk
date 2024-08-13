@@ -1,20 +1,20 @@
-
-from ffmpeg.ffmpeg import types
-from .interfaces import ITranscoder, ICodecs
 import asyncio
-import tempfile
 import json
-import subprocess
 import logging
-from asyncio import Future
 import os
 import re
-from ffmpeg import FFmpeg
-
+import subprocess
+import tempfile
+from asyncio import Future
 from typing import Dict, Final, Optional, Sequence
-from .types import Codec, CodecType, TranscodingParameters
+
+from ffmpeg import FFmpeg
+from ffmpeg.ffmpeg import types
 
 from .constants import H265_BPP
+from .interfaces import ICodecs, ITranscoder
+from .types import Codec, CodecType, TranscodingParameters
+
 
 def ffprobe(input_file: str) -> Dict:
     """Runs ffprobe on a file an returns
@@ -28,9 +28,11 @@ def ffprobe(input_file: str) -> Dict:
     ffprobe_exec = "ffprobe"
 
     result = subprocess.run(
-        [ffprobe_exec] + ffprobe_args + [input_file], stdout=subprocess.PIPE)    
+        [ffprobe_exec] + ffprobe_args + [input_file], stdout=subprocess.PIPE
+    )
 
     return json.loads(result.stdout)
+
 
 class Codecs(ICodecs):
     """
@@ -61,13 +63,11 @@ class Codecs(ICodecs):
 
         return cls._instance
 
-
     @staticmethod
     def parse_codec_line(line: str) -> Codec:
-        fields = re.search("([^\\s]+)\\s([^\\s]+)\\s*(.+)",line.lstrip().rstrip())
+        fields = re.search("([^\\s]+)\\s([^\\s]+)\\s*(.+)", line.lstrip().rstrip())
 
         if fields:
-
             codec = Codec()
 
             codec.name = fields[Codecs.NAME_FIELD]
@@ -109,7 +109,7 @@ class Codecs(ICodecs):
 
         :returns: a list of installed codecs
         :raises CalledProcessError if something goes wrong
-         """
+        """
         result = subprocess.run(["ffmpeg", "-codecs"], capture_output=True, check=True)
 
         codecs = []
@@ -117,14 +117,14 @@ class Codecs(ICodecs):
         for line in result.stdout.decode("utf-8").split("\n"):
             try:
                 codecs.append(Codecs.parse_codec_line(line))
-            except:
+            except Exception:
                 pass
 
         return codecs
 
+
 class Transcoder(ITranscoder):
-    """The FFmpeg implementation of interface ITranscoder.
-    """
+    """The FFmpeg implementation of interface ITranscoder."""
 
     parameters: TranscodingParameters = TranscodingParameters()
 
@@ -135,25 +135,26 @@ class Transcoder(ITranscoder):
         return asyncio.create_task(self.__do_transcode(input_file, output_file))
 
     def __apply_rotation(self, input_file: str, output_file: str, info: Dict) -> None:
-
         if "side_data_list" in info["streams"][0]:
             rotation = info["streams"][0]["side_data_list"][0]["rotation"]
 
             tmp_output_file = tempfile.NamedTemporaryFile(
-                suffix=".mp4", dir=".", delete=False).name
+                suffix=".mp4", dir=".", delete=False
+            ).name
 
             logging.debug(f"Applying rotation of {rotation} deg")
 
             ffmpeg_cmd = FFmpeg()
 
-            ffmpeg_cmd.option("y").option("display_rotation", rotation).input(input_file).output(tmp_output_file, {"map_metadata":0, "codec": "copy"})
+            ffmpeg_cmd.option("y").option("display_rotation", rotation).input(
+                input_file
+            ).output(tmp_output_file, {"map_metadata": 0, "codec": "copy"})
 
             ffmpeg_cmd.execute()
 
             os.rename(tmp_output_file, output_file)
 
     async def __do_transcode(self, input_file: str, output_file: str) -> None:
-
         # Get the info from the file
         info = ffprobe(input_file)
         stream_info = info["streams"][0]
@@ -162,15 +163,22 @@ class Transcoder(ITranscoder):
         ffmpeg_cmd = FFmpeg()
 
         if self.parameters.auto_bitrate:
-            bitrate = int((stream_info["width"] * stream_info["height"]
-                          * eval(stream_info["avg_frame_rate"]) * H265_BPP)/1000)
+            bitrate = int(
+                (
+                    stream_info["width"]
+                    * stream_info["height"]
+                    * eval(stream_info["avg_frame_rate"])
+                    * H265_BPP
+                )
+                / 1000
+            )
         else:
             bitrate = self.parameters.bitrate // 1000
 
         # Default output options
-        output_options: dict[str,Optional[types.Option]] = {}
+        output_options: dict[str, Optional[types.Option]] = {}
         if self.parameters.try_gpu:
-            output_options["c:v"] = "hevc_nvenc" 
+            output_options["c:v"] = "hevc_nvenc"
         else:
             output_options["c:v"] = "libx265"
 
@@ -189,17 +197,19 @@ class Transcoder(ITranscoder):
 
         logging.debug(f"output_options: {output_options}")
 
-        ffmpeg_cmd.option("y").option("vsync",0).input(input_file).output(output_file, options=output_options)
+        ffmpeg_cmd.option("y").option("vsync", 0).input(input_file).output(
+            output_file, options=output_options
+        )
 
         if self.parameters.try_gpu:
-            ffmpeg_cmd.option("hwaccel", "cuda").option("hwaccel_output_format","cuda")
+            ffmpeg_cmd.option("hwaccel", "cuda").option("hwaccel_output_format", "cuda")
 
         ffmpeg_cmd.execute()
 
-        if 'bit_rate' in stream_info:
+        if "bit_rate" in stream_info:
             logging.debug(f"original bitrate: {stream_info['bit_rate']}")
-        logging.debug(f"bitrate for {stream_info['width']}x{stream_info['height']}@{eval(stream_info['r_frame_rate'])}: {bitrate}kbps")
+        logging.debug(
+            f"bitrate for {stream_info['width']}x{stream_info['height']}@{eval(stream_info['r_frame_rate'])}: {bitrate}kbps"
+        )
 
         self.__apply_rotation(output_file, output_file, info)
-
-
