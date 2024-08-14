@@ -45,12 +45,33 @@ def test_parse_line():
         == "H.265 / HEVC (High Efficiency Video Coding) (decoders: hevc hevc_v4l2m2m hevc_cuvid) (encoders: hevc_nvenc hevc_v4l2m2m)"
     )
 
+    assert len(hevc.encoders) == 2
+    assert hevc.encoders == ["hevc_nvenc", "hevc_v4l2m2m"]
+    assert len(hevc.decoders) == 3
+
+    hevc = Codecs.parse_codec_line(
+        "D.V.L. hevc                 H.265 / HEVC (High Efficiency Video Coding)"
+    )
+
+    assert hevc.decoding
+    assert not hevc.encoding
+    assert hevc.type == CodecType.VIDEO
+    assert hevc.lossy
+    assert not hevc.lossless
+    assert not hevc.intra_frame_only
+    assert hevc.name == "hevc"
+
+    assert len(hevc.encoders) == 0
+    assert len(hevc.decoders) == 1
+
     with pytest.raises(TypeError):
         hevc = Codecs.parse_codec_line("test 2")
 
 
 def test_codec():
     codec = Codec()
+    assert codec.encoders == []
+    assert codec.decoders == []
     assert not codec.decoding
     assert not codec.encoding
     assert not codec.intra_frame_only

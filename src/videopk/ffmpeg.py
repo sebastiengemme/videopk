@@ -8,7 +8,7 @@ import tempfile
 from asyncio import Future
 from typing import Dict, Final, Optional, Sequence
 
-from ffmpeg import FFmpeg
+from ffmpeg.asyncio import FFmpeg
 from ffmpeg.ffmpeg import types
 
 from .constants import H265_BPP
@@ -100,6 +100,25 @@ class Codecs(ICodecs):
             if fields[Codecs.CAP_FIELD][Codecs.LOSSLESS_POS] == "S":
                 codec.lossless = True
 
+            if codec.decoding:
+                # Try to match encoders and decoders
+                m = re.search(r"decoders:([^\)]*)\)", line.lstrip().rstrip())
+
+                if m is not None:
+                    codec.decoders = m.group(1).split()
+
+            if codec.encoding:
+                m = re.search(r"encoders:([^\)]*)\)", line.lstrip().rstrip())
+
+                if m is not None:
+                    codec.encoders = m.group(1).split()
+
+            if codec.encoding and len(codec.encoders) == 0:
+                codec.encoders.append(codec.name)
+
+            if codec.decoding and len(codec.decoders) == 0:
+                codec.decoders.append(codec.name)
+
             return codec
         else:
             raise TypeError("invalid line")
@@ -126,15 +145,15 @@ class Codecs(ICodecs):
 class Transcoder(ITranscoder):
     """The FFmpeg implementation of interface ITranscoder."""
 
-    parameters: TranscodingParameters = TranscodingParameters()
-
     def __init__(self) -> None:
-        pass
+        self.parameters = TranscodingParameters()
 
     def transcode(self, input_file: str, output_file: str) -> Future:
         return asyncio.create_task(self.__do_transcode(input_file, output_file))
 
-    def __apply_rotation(self, input_file: str, output_file: str, info: Dict) -> None:
+    async def __apply_rotation(
+        self, input_file: str, output_file: str, info: Dict
+    ) -> None:
         if "side_data_list" in info["streams"][0]:
             rotation = info["streams"][0]["side_data_list"][0]["rotation"]
 
@@ -150,7 +169,7 @@ class Transcoder(ITranscoder):
                 input_file
             ).output(tmp_output_file, {"map_metadata": 0, "codec": "copy"})
 
-            ffmpeg_cmd.execute()
+            await ffmpeg_cmd.execute()
 
             os.rename(tmp_output_file, output_file)
 
@@ -181,6 +200,9 @@ class Transcoder(ITranscoder):
             output_options["c:v"] = "hevc_nvenc"
         else:
             output_options["c:v"] = "libx265"
+        #            output_options["c:v"] = "libx264"
+        #            output_options["profile:v"] = "high"
+        #            output_options["level:v"] = 4.0
 
         logging.debug(f"format name: {format_name}")
 
@@ -204,7 +226,7 @@ class Transcoder(ITranscoder):
         if self.parameters.try_gpu:
             ffmpeg_cmd.option("hwaccel", "cuda").option("hwaccel_output_format", "cuda")
 
-        ffmpeg_cmd.execute()
+        await ffmpeg_cmd.execute()
 
         if "bit_rate" in stream_info:
             logging.debug(f"original bitrate: {stream_info['bit_rate']}")
@@ -212,4 +234,4 @@ class Transcoder(ITranscoder):
             f"bitrate for {stream_info['width']}x{stream_info['height']}@{eval(stream_info['r_frame_rate'])}: {bitrate}kbps"
         )
 
-        self.__apply_rotation(output_file, output_file, info)
+        await self.__apply_rotation(output_file, output_file, info)
