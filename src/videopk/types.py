@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import MutableSequence
 
 
 class CodecType(Enum):
@@ -12,22 +13,26 @@ class CodecType(Enum):
 class TranscodingParameters(object):
     """Transcoding parameter"""
 
-    try_gpu = True
-    auto_bitrate = True
-    only_video = False
-    bitrate = 0
-    auto_bitrate = True
+    def __init__(self) -> None:
+        self.try_gpu = True
+        self.auto_bitrate = True
+        self.only_video = False
+        self.bitrate = 0
+        self.auto_bitrate = True
 
 
 class Codec(object):
-    __decoding = False
-    __encoding = False
-    __type = CodecType.VIDEO
-    __intra_frame_only = False
-    __lossy = False
-    __lossless = False
-    __name = ""
-    __description = ""
+    def __init__(self) -> None:
+        self.encoders: MutableSequence[str] = []
+        self.decoders: MutableSequence[str] = []
+        self.__decoding = False
+        self.__encoding = False
+        self.__type = CodecType.VIDEO
+        self.__intra_frame_only = False
+        self.__lossy = False
+        self.__lossless = False
+        self.__name = ""
+        self.__description = ""
 
     @property
     def name(self) -> str:
