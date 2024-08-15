@@ -24,7 +24,7 @@ class ITranscoder(Protocol):
     """Transcoding parameters
     """
 
-    def transcode(self, input_file: str, output_file: str) -> Future:
+    async def transcode(self, input_file: str, output_file: str) -> None:
         """Transcodes a file using the specified transcoding parameter. This method is meant to be run asynchronously by
         return a Future object.
 
@@ -33,6 +33,5 @@ class ITranscoder(Protocol):
 
         :raises RuntimeError: if an error occurs (will have more granular exceptions in the future)
 
-        :return: a Future representing the task performing the transcoding
         """
         ...

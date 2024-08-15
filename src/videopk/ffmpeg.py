@@ -148,8 +148,8 @@ class Transcoder(ITranscoder):
     def __init__(self) -> None:
         self.parameters = TranscodingParameters()
 
-    def transcode(self, input_file: str, output_file: str) -> Future:
-        return asyncio.create_task(self.__do_transcode(input_file, output_file))
+    async def transcode(self, input_file: str, output_file: str) -> None:
+        await asyncio.create_task(self.__do_transcode(input_file, output_file))
 
     async def __apply_rotation(
         self, input_file: str, output_file: str, info: Dict
